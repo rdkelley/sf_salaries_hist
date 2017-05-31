@@ -7,11 +7,11 @@ var hist = (function() {
     salaries: [],
 
     graphDimensions: function () {
-      svg.attr("width", "1000")
-        .attr("height", "500");
+      svg.attr("width", "1024")
+        .attr("height", "550");
       return {
-        width: svg.attr("width"),
-        height: svg.attr("height"),
+        width: +svg.attr("width") - 40,
+        height: +svg.attr("height") - 40,
       }
     },
 
@@ -21,12 +21,12 @@ var hist = (function() {
 
       var x = d3.scaleLinear()
         .domain([0, d3.max(this.salaries)])
-        .range([0, this.graphDimensions().width]);
+        .rangeRound([0, dem.width]);
 
 
       var bins = d3.histogram()
         .domain(x.domain())
-        .thresholds(x.ticks(30))
+        .thresholds(x.ticks(31))
         (this.salaries);
 
         console.log(bins);
@@ -39,8 +39,8 @@ var hist = (function() {
         })])
         .range([dem.height, 0]);
 
-
-      var g = svg.append("g");
+      var g = svg.append("g")
+        .attr("transform", "translate(40, 20)");
 
       g.selectAll("g")
         .data(bins)
@@ -48,8 +48,7 @@ var hist = (function() {
         .append("g")
         .attr("class", "bar")
         .attr("transform", function(d){
-          console.log();
-          return "translate(" + Math.floor(x(d.x0)) + "," + y(d.length) + ")";
+          return "translate(" + x(d.x0) + "," + y(d.length) + ")";
         });
 
       d3.selectAll(".bar")
@@ -59,6 +58,17 @@ var hist = (function() {
           return dem.height - y(d.length);
         })
 
+      d3.select("g")
+        .append("g")
+        .attr("class", "x-axis")
+        .attr("transform", "translate(0," + dem.height + ")")
+        .call(d3.axisBottom(x));
+
+      d3.select("g")
+        .append("g")
+        .attr("class", "y-axis")
+        .call(d3.axisLeft(y))
+
     },
   };
 
@@ -67,7 +77,10 @@ var hist = (function() {
     loadData : function () {
       d3.csv("Salaries.csv")
         .row(function(d) {
-          return +d.BasePay
+          var years = [2011, 2012, 2013, 2014];
+          if (+d.BasePay > 0 && years.indexOf(+d.Year) !== -1) {
+            return +d.BasePay
+          }
         })
         .get(function(err, rows){
           builder.salaries = rows;
