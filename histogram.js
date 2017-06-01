@@ -7,11 +7,12 @@ var hist = (function() {
     salaries: [],
 
     graphDimensions: function () {
-      svg.attr("width", "1024")
+      margins = {top: 20, right: 21, bottom: 20, left: 21},
+      svg.attr("width", "1000")
         .attr("height", "550");
       return {
-        width: +svg.attr("width") - 40,
-        height: +svg.attr("height") - 40,
+        width: +svg.attr("width") - margins.right - margins.left,
+        height: +svg.attr("height") - margins.top - margins.bottom,
       }
     },
 
@@ -23,13 +24,10 @@ var hist = (function() {
         .domain([0, d3.max(this.salaries)])
         .rangeRound([0, dem.width]);
 
-
       var bins = d3.histogram()
         .domain(x.domain())
         .thresholds(x.ticks(31))
         (this.salaries);
-
-        console.log(bins);
 
       var y = d3.scaleLinear()
         .domain([d3.min(bins, function(d) {
@@ -48,6 +46,7 @@ var hist = (function() {
         .append("g")
         .attr("class", "bar")
         .attr("transform", function(d){
+          console.log(x(d.x0));
           return "translate(" + x(d.x0) + "," + y(d.length) + ")";
         });
 
@@ -58,17 +57,19 @@ var hist = (function() {
           return dem.height - y(d.length);
         })
 
+      var xAxis = d3.axisBottom(x)
+        .tickFormat(d3.format("$,d"));
+
       d3.select("g")
         .append("g")
         .attr("class", "x-axis")
         .attr("transform", "translate(0," + dem.height + ")")
-        .call(d3.axisBottom(x));
+        .call(xAxis);
 
       d3.select("g")
         .append("g")
         .attr("class", "y-axis")
         .call(d3.axisLeft(y))
-
     },
   };
 
